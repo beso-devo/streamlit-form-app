@@ -1,14 +1,22 @@
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import toml
+import json
+
+# Load the secrets from the .secrets.toml file
+secrets = toml.load('/workspaces/blank-app/.streamlit/secrets.toml')
+
+# Extract Google API credentials
+google_api_credentials = json.loads(secrets['google_api']['credentials'])
 
 # Define scope for Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-
+print("");
 # Authenticate with Google API credentials
-credentials = ServiceAccountCredentials.from_json_keyfile_name('/workspaces/blank-app/credentials/creds.json', scope)
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(google_api_credentials, scope)
 client = gspread.authorize(credentials)
-print(client);
+
 # Open a Google Sheet by name or URL
 sheet = client.open("StreamLit Form").sheet1
 
@@ -53,8 +61,7 @@ with st.form(key="vendor_form"):
 
     # If the submit button is pressed
     if submit_button:
-        submit_record([company_name, business_type, ", ".join(products), years_in_business, onboarding_date.strftime("%Y-%m-%d"), additional_info]);
-        # submit_record(["John Doe", "johndoe@example.com", "New York", "October 12, 2024"]);
+        submit_record([company_name, business_type, ", ".join(products), years_in_business, onboarding_date.strftime("%Y-%m-%d"), additional_info])
         existing_data = sheet.get_all_records()
         st.dataframe(existing_data)
         st.success("Vendor details successfully submitted!")
